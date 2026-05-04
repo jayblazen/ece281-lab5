@@ -73,6 +73,6 @@ begin
 end process;
 
 -- Output
-o_cycle <= next_state;
+o_cycle <= state;
 
 end FSM;

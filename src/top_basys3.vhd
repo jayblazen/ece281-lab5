@@ -26,13 +26,11 @@ use ieee.numeric_std.all;
 
 entity top_basys3 is
     port(
-        -- inputs
         clk     : in std_logic;
         sw      : in std_logic_vector(7 downto 0);
         btnU    : in std_logic;
         btnC    : in std_logic;
 
-        -- outputs
         led : out std_logic_vector(15 downto 0);
         seg : out std_logic_vector(6 downto 0);
         an  : out std_logic_vector(3 downto 0)
@@ -65,9 +63,13 @@ architecture top_basys3_arch of top_basys3 is
     -- Sign digit
     signal w_sign_digit : std_logic_vector(3 downto 0);
 
+    -- ✔ NEW: blank control
+    signal blank_mode : std_logic;
+
 begin
 
--- BUTTON EDGE DETECT 
+-- =====================================================
+-- BUTTON EDGE DETECT
 process(clk)
 begin
     if rising_edge(clk) then
@@ -77,6 +79,7 @@ end process;
 
 btnC_edge <= btnC and not btnC_prev;
 
+-- =====================================================
 -- FSM
 fsm_inst : entity work.controller_fsm
     port map (
@@ -86,7 +89,7 @@ fsm_inst : entity work.controller_fsm
         o_cycle => w_cycle
     );
 
-
+-- =====================================================
 -- ALU
 alu_inst : entity work.ALU
     port map (
@@ -97,9 +100,8 @@ alu_inst : entity work.ALU
         o_flags => w_flags
     );
 
-
+-- =====================================================
 -- REGISTERS
-
 process(clk)
 begin
     if rising_edge(clk) then
@@ -116,20 +118,28 @@ begin
     end if;
 end process;
 
--- DISPLAY SELECT 
-process(w_cycle, r_A, r_B, w_alu_result)
+-- =====================================================
+-- ✔ BLANK MODE (STATE 1)
+blank_mode <= '1' when w_cycle = "0001" else '0';
+
+-- =====================================================
+-- DISPLAY SELECT (FIXED)
+process(w_cycle, r_A, r_B, w_alu_result, blank_mode)
 begin
-    case w_cycle is
-        when "0001" => w_display <= (others => '0');      -- clear
-        when "0010" => w_display <= r_A;                  -- show A
-        when "0100" => w_display <= r_B;                  -- show B
-        when "1000" => w_display <= w_alu_result;         -- result
-        when others => w_display <= (others => '0');
-    end case;
+    if blank_mode = '1' then
+        w_display <= (others => '0');
+    else
+        case w_cycle is
+            when "0010" => w_display <= r_A;
+            when "0100" => w_display <= r_B;
+            when "1000" => w_display <= w_alu_result;
+            when others  => w_display <= (others => '0');
+        end case;
+    end if;
 end process;
 
-
--- BINARY → DECIMAL 
+-- =====================================================
+-- BINARY → DECIMAL
 twos_inst : entity work.twos_comp
     port map (
         i_bin  => w_display,
@@ -139,10 +149,14 @@ twos_inst : entity work.twos_comp
         o_ones => w_ones
     );
 
--- sign digit (10 = dash, 15 = blank)
-w_sign_digit <= "1010" when w_sign = '1' else "1111";
+-- =====================================================
+-- SIGN DIGIT (FIXED)
+w_sign_digit <= "1111" when blank_mode = '1' else
+                "1010" when w_sign = '1' else
+                "1111";
 
--- TDM 
+-- =====================================================
+-- TDM
 tdm_inst : entity work.TDM4
     generic map (k_WIDTH => 4)
     port map (
@@ -156,7 +170,7 @@ tdm_inst : entity work.TDM4
         o_sel  => an
     );
 
-
+-- =====================================================
 -- 7-SEG DECODER
 sevenseg_inst : entity work.sevenseg_decoder
     port map (
@@ -164,6 +178,7 @@ sevenseg_inst : entity work.sevenseg_decoder
         o_seg_n => seg
     );
 
+-- =====================================================
 -- LED OUTPUTS
 led(3 downto 0)   <= w_cycle;
 led(15 downto 12) <= w_flags;
