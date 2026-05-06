@@ -152,9 +152,12 @@ tdm_inst : entity work.TDM4
         i_clk   => clk,
         i_reset => btnU,
         -- Force D3-D0 to "1111" if state is 0001
-       
+        i_D3 => w_sign_digit, 
+        i_D2 => "1111" when w_cycle = "0001" else w_hund,
+        i_D1 => "1111" when w_cycle = "0001" else w_tens,
+        i_D0 => "1111" when w_cycle = "0001" else w_ones,
         o_data => w_tdm_data,
-        o_sel  => an
+        o_sel  => an 
     );
 
 
