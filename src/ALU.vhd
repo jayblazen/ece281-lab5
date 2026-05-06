@@ -109,9 +109,9 @@ begin
 
     -- Zero
     if res_s = 0 then
-        o_flags(2) <= '1';
-    else
         o_flags(2) <= '0';
+    else
+        o_flags(2) <= '1';
     end if;
 
     -- Overflow (signed)
