@@ -162,7 +162,7 @@ end process;
 -- =====================================================
 -- BINARY TO DECIMAL
 -- =====================================================
-twos_inst : entity work.twos_comp
+twos_inst : entity work
     port map (
         i_bin  => w_display,
         o_sign => w_sign,
