@@ -71,7 +71,7 @@ architecture behavioral of TDM4 is
     -- ORIGINAL signal
     signal f_sel : unsigned(1 downto 0) := "00";
 
-    -- ✅ ADDED: clock divider
+    -- 
     signal clk_div : unsigned(15 downto 0) := (others => '0');
     signal slow_clk : std_logic;
 
