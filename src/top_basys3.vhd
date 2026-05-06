@@ -121,7 +121,7 @@ tdm_inst : entity work.TDM4
     port map (
         i_clk  => clk,
         i_reset => btnU,
-
+     
         i_D3 => w_sign_digit when w_cycle /= "0001" else "1111",
         i_D2 => w_hund       when w_cycle /= "0001" else "1111",
         i_D1 => w_tens       when w_cycle /= "0001" else "1111",
